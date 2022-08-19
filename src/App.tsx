@@ -44,14 +44,38 @@ function App() {
     "placeholder",
     "search",
   ]);
+  const [mistakes, setMistakes] = useState(5);
+  const [characters, setCharacters] = useState([]);
   function getRandomWord() {
     const randomIndex = Math.floor(Math.random() * words.length);
     return words[randomIndex];
   }
-
+  // function getMistakes() {
+  //   let mistakes = characters.filter(
+  //     (char) => !words.map((word) => word.includes(char))
+  //   );
+  //   return mistakes;
+  // }
+  // function getMistakeCount() {
+  //   let mistakes = getMistakes();
+  //   return mistakes.length;
+  // }
+  // // function getCorrectGuesses() {
+  //   let correctGuesses = characters.filter((char) =>
+  //     state.word.includes(char)
+  //   );
+  //   return correctGuesses;
+  // }
+  const charactersInWord = getRandomWord().split("");
   return (
     <div className="App">
-      <h1>hello</h1>
+      <div className="word">
+        {charactersInWord.map((char) => (
+          <span className="char">_</span>
+        ))}
+      </div>
+      <div className="mistakes">Wrong guesses: (0)</div>
+      <div className="streak">Streak: 0</div>
     </div>
   );
 }
