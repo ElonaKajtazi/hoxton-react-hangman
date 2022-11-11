@@ -1,5 +1,10 @@
 import { useEffect, useState } from "react";
 import "./App.css";
+import { LostMessage } from "./components/LostMessage";
+import { Streak } from "./components/Streak";
+import { WonMessage } from "./components/WonMessage";
+import { Word } from "./components/Word";
+import { WrongGuesses } from "./components/WrongGuesses";
 function App() {
   const [letters, setLetters] = useState("abcdefghijklmnopqrstuvwxyz");
   const [words, setWords] = useState([
@@ -77,64 +82,17 @@ function App() {
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, [guesses, userLost, userWon]);
   return (
-    <div className="App" onKeyUp={() => {}}>
-      {/* <h1>REACT VERSION OF THIS GAME</h1> */}
-      <div className="word">
-        {word.split("").map((char, index) => (
-          <span key={index}>{correctGuesses.includes(char) ? char : "_"} </span>
-        ))}
-      </div>
-      <div
-        className={
-          wrongGuesses.length === 0
-            ? "mistakes"
-            : wrongGuesses.length === 1
-            ? "mistakes-warning"
-            : wrongGuesses.length === 2
-            ? "more-mistakes-warning"
-            : wrongGuesses.length === 3
-            ? "mistakes-danger"
-            : wrongGuesses.length === 4
-            ? "almost-lost"
-            : "lost"
-        }
-      >
-        Wrong guesses:{wrongGuesses} ({wrongGuesses.length})
-      </div>
+    <div className="App">
+      <Word correctGuesses={correctGuesses} word={word} />
+      <WrongGuesses wrongGuesses={wrongGuesses} />
       {userLost ? (
-        <>
-          <div className="message">
-            <p>You lose! ☹️ The word was {word}</p>
-            <button
-              className="restart-button"
-              onClick={() => {
-                restart();
-                setStreak(0);
-              }}
-            >
-              RESTART
-            </button>
-          </div>
-        </>
+        <LostMessage restart={restart} setStreak={setStreak} word={word} />
       ) : null}
       {userWon ? (
-        <div className="message">
-          <p>You win! 🎉</p>
-          <button
-            className="restart-button"
-            onClick={() => {
-              restart();
-              let streakCopy = structuredClone(streak);
-              streakCopy++;
-              setStreak(streakCopy);
-            }}
-          >
-            RESTART
-          </button>
-        </div>
+        <WonMessage restart={restart} setStreak={setStreak} streak={streak} />
       ) : null}
 
-      <div className="streak">Streak: {streak}</div>
+      <Streak streak={streak} />
     </div>
   );
 }

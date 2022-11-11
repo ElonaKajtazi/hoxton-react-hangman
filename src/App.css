@@ -32,6 +32,10 @@
 .almost-lost {
   color: rgb(255, 38, 0);
 }
+.lost {
+  color: rgb(195, 7, 7);
+  
+}
 .word {
   display: grid;
   grid-auto-flow: column;
