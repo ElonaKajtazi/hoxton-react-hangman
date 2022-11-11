@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import "./App.css";
-
 function App() {
+  const [letters, setLetters] = useState("abcdefghijklmnopqrstuvwxyz");
   const [words, setWords] = useState([
     "javascript",
     "typescript",
@@ -44,88 +44,97 @@ function App() {
     "placeholder",
     "search",
   ]);
-  const [maxMistakes, setMaxMistakes] = useState(5);
-  const charactersInWord = getRandomWord().split("");
-  const [characters, setCharacters] = useState(charactersInWord);
-  const [mistakes, setMistakes] = useState(!charactersInWord.length);
-  const [guesses, setGuesses] = useState([]);
+  const [word, setWord] = useState(getRandomWord());
+  const [guesses, setGuesses] = useState<string[]>([]);
+  const [streak, setStreak] = useState(0);
+
   function getRandomWord() {
     const randomIndex = Math.floor(Math.random() * words.length);
     return words[randomIndex];
   }
-
-  function checkIfUserWon() {
-    // are all the letters in state.word in state.characters?
-    for (let char of characters) {
-      if (characters.includes(char)) return false;
-    }
-
-    // We know that every single letter in the word is in the characters array
-    return true;
-
-    // approach 2: using array.every
-    // state.word.split("").every((char) => state.characters.includes(char));
-  }
-  function getMistakes() {
-    let mistakes = characters.filter(
-      (char) => !words.map((word) => word.includes(char))
-    );
-    return mistakes;
+  function restart() {
+    setGuesses([]);
+    setWord(getRandomWord());
   }
 
-  //Count the letters in state.guessedLetters that ARE NOT in state.word ✅
-  function getMistakeCount() {
-    let mistakes = getMistakes();
-    return mistakes.length;
-  }
-  function checkIfUserLost() {
-    return getMistakeCount() >= maxMistakes;
-  }
-  // function getGuessedLetters() {
-  //   let guessedLetters = characters.filter(
-  //     (char) => !words.map((word) => word.includes(char))
-  //   );
-  //   return guessedLetters;
-  // }
+  let wrongGuesses = guesses.filter((guess) => !word.includes(guess));
+  let correctGuesses = guesses.filter((guess) => word.includes(guess));
+  const lives = 5 - wrongGuesses.length;
+
+  const userLost = lives === 0;
+  const userWon = word.split("").every((char) => correctGuesses.includes(char));
+
   useEffect(() => {
-    function handleKeyUp(event) {
+    if (userLost || userWon) return;
+    function handleKeyDown(event: any) {
       let guess = event.key.toLowerCase();
-
-      let letters = "abcdefghijklmnopqrstuvwxyz";
-      // GUARD STATEMENTS
-      //1. No sppecial characters should be allowed onluy letters a-z
       if (!letters.includes(guess)) return;
-
-      //2. No duplicate letters should be allowed
-      if (characters.includes(guess)) return;
-      // //3. If the user lost, don't allow them to guess anymore
-      if (checkIfUserLost()) return;
-      //4. If the user won, don't allow them to guess anymore
-      if (checkIfUserWon()) return;
-      // This only happens if all the guard statements are FALSE
-      // setCharacters([...characters, guess]);
-      // state.characters.push(guess);
-      let charactersCopy = structuredClone(characters);
-      charactersCopy.push(guess);
-      setCharacters(charactersCopy);
-      console.log(charactersCopy);
+      if (guesses.includes(guess)) return;
+      setGuesses([...guesses, guess]);
     }
 
-    window.addEventListener("keyup", handleKeyUp);
-    return () => window.removeEventListener("keyup", handleKeyUp);
-  }, [guesses]);
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [guesses, userLost, userWon]);
   return (
-    <div
-      className="App"
-    >
-      <h1>REACT VERSION OF THIS GAME</h1>
+    <div className="App" onKeyUp={() => {}}>
+      {/* <h1>REACT VERSION OF THIS GAME</h1> */}
       <div className="word">
-        {charactersInWord.map((char) => (
-          <span className="char">_</span>
+        {word.split("").map((char, index) => (
+          <span key={index}>{correctGuesses.includes(char) ? char : "_"} </span>
         ))}
       </div>
-      <div className="mistakes">Wrong guesses:({mistakes})</div>
-      <div className="streak">Streak: 0</div>
+      <div
+        className={
+          wrongGuesses.length === 0
+            ? "mistakes"
+            : wrongGuesses.length === 1
+            ? "mistakes-warning"
+            : wrongGuesses.length === 2
+            ? "more-mistakes-warning"
+            : wrongGuesses.length === 3
+            ? "mistakes-danger"
+            : wrongGuesses.length === 4
+            ? "almost-lost"
+            : "lost"
+        }
+      >
+        Wrong guesses:{wrongGuesses} ({wrongGuesses.length})
+      </div>
+      {userLost ? (
+        <>
+          <div className="message">
+            <p>You lose! ☹️ The word was {word}</p>
+            <button
+              className="restart-button"
+              onClick={() => {
+                restart();
+                setStreak(0);
+              }}
+            >
+              RESTART
+            </button>
+          </div>
+        </>
+      ) : null}
+      {userWon ? (
+        <div className="message">
+          <p>You win! 🎉</p>
+          <button
+            className="restart-button"
+            onClick={() => {
+              restart();
+              let streakCopy = structuredClone(streak);
+              streakCopy++;
+              setStreak(streakCopy);
+            }}
+          >
+            RESTART
+          </button>
+        </div>
+      ) : null}
+
+      <div className="streak">Streak: {streak}</div>
     </div>
   );
 }
